@@ -1410,6 +1410,16 @@ def build(bld):
                 lib = ["m", "z"],
                 install_path = None)
 
+    test_sdhci01 = ['testsuite/sdhci01/test_main.c']
+    bld.program(target = "sdhci01",
+                features = "cprogram",
+                cflags = cflags,
+                includes = includes,
+                source = test_sdhci01,
+                use = ["bsd"],
+                lib = ["m", "z"],
+                install_path = None)
+
     test_ping01 = ['testsuite/ping01/test_main.c']
     bld.program(target = "ping01",
                 features = "cprogram",

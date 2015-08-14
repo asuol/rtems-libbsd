@@ -823,6 +823,8 @@ sdhci_attach(device_t dev)
 	sc->quirks = SDHCI_QUIRK_BROKEN_TIMINGS
 		| SDHCI_QUIRK_32BIT_DMA_SIZE;
 	slots = 1;
+#elif defined(LIBBSP_ARM_RASPBERRYPI_BSP_H)
+	slots = 1;
 #else
 	slots = 0;
 #endif
