@@ -391,7 +391,23 @@ sdhci_reset(struct sdhci_slot *slot, uint8_t mask)
 		sdhci_set_clock(slot, clock);
 	}
 
+#if defined(__rtems__) && defined(LIBBSP_ARM_RASPBERRYPI_BSP_H)
+	/* The clock must be disabled during the reset operation. */
+	uint32_t control1 = RD4(slot, SDHCI_CLOCK_CONTROL);
+
+	/* Reset the complete host circuit. */
+	control1 |= (1 << 24);
+
+	/* Disable SD clock. */
+	control1 &= ~(1 << 2);
+
+	/* Disable internal EMMC clocks. */
+	control1 &= ~(1 << 0);
+
+	WR4(slot, SDHCI_CLOCK_CONTROL, control1);
+#else /* __rtems__ */
 	WR1(slot, SDHCI_SOFTWARE_RESET, mask);
+#endif /* __rtems__ */
 
 	if (mask & SDHCI_RESET_ALL) {
 		slot->clock = 0;
@@ -909,6 +925,8 @@ sdhci_attach(device_t dev)
 #else /* __rtems__ */
 #ifdef LIBBSP_POWERPC_QORIQ_BSP_H
 		slot->max_clk = BSP_bus_frequency / 2;
+#elif defined(LIBBSP_ARM_RASPBERRYPI_BSP_H)
+		slot->max_clk = 100000000;
 #else
 		panic("FIXME");
 #endif
@@ -920,6 +938,8 @@ sdhci_attach(device_t dev)
 #else /* __rtems__ */
 #ifdef LIBBSP_POWERPC_QORIQ_BSP_H
 		slot->timeout_clk = slot->max_clk / 1000;
+#elif defined(LIBBSP_ARM_RASPBERRYPI_BSP_H)
+	        slot->timeout_clk = slot->max_clk / 1000;
 #else
 		panic("FIXME");
 #endif
@@ -935,6 +955,8 @@ sdhci_attach(device_t dev)
 		slot->host.f_min = slot->max_clk / 256;
 #else /* __rtems__ */
 #ifdef LIBBSP_POWERPC_QORIQ_BSP_H
+		slot->host.f_min = 400000;
+#elif defined(LIBBSP_ARM_RASPBERRYPI_BSP_H)
 		slot->host.f_min = 400000;
 #else
 		panic("FIXME");
